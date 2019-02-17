@@ -8,7 +8,7 @@ Parameters:
   VPCName:
     Description: Nom du VPC a creer
     Type: String
-    Default: 'serverlessFullToolchain_VPC_CFN'
+    Default: 'serverlessToolchain_VPC_CFN'
     
   VPCCidrBlock:
     Type: String
