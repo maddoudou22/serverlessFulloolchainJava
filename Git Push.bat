@@ -1,9 +1,9 @@
 
 echo off
 
-SET nom_Projet_Git=serverlessToolchainJava
-SET URL_Projet_Git=https://github.com/maddoudou22/serverlessToolchainJava.git
-SET Repertoire_Local_Projet=C:\awsLambda\java\serverlessToolchainJava
+SET nom_Projet_Git=serverlessFullToolchainJava
+SET URL_Projet_Git=https://github.com/maddoudou22/serverlessFullToolchainJava.git
+SET Repertoire_Local_Projet=C:\awsLambda\java\serverlessFullToolchainJava
 
 cd %Repertoire_Local_Projet%
 

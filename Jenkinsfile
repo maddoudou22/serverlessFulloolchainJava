@@ -3,20 +3,17 @@ pipeline {
 	
 	environment {
 	
-		dockerRepo = "serverlesstoolchainjava"
+		dockerRepo = "serverlessfulltoolchainjava"
 		AWS_ACCOUNT_ID = "962109799108"
 		AWS_REGION = "eu-west-1"
 		DOCKER_CACHE_IMAGE_VERSION = "latest"
-		S3_TESTRESULTS_LOCATION = "s3://serverlesstoolchainjava/tests-results/"
+		S3_TESTRESULTS_LOCATION = "s3://serverlessfulltoolchainjava/tests-results/"
 
 		package_version = readMavenPom().getVersion()
 		applicationName = readMavenPom().getArtifactId()
 		groupID = readMavenPom().getGroupId()
 		dockerRegistry = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 		
-		//kubernetesNode = 'rancher.maddoudou.click'
-		//deploymentConfigurationPathSource = "deploy-k8s" // Location of the K8s deployment configuration on the pipeline instance
-		//deploymentConfigurationPathKubernetes = "/home/ubuntu/k8s-deployments" // Location of the K8s deployment configuration on the K8s instance
     }
 	
     stages {
@@ -53,7 +50,7 @@ pipeline {
 		stage('OWASP - Dependencies check') {
             steps {
                 echo 'Check OWASP dependencies ...'
-				//sh 'mvn dependency-check:check'
+				sh 'mvn dependency-check:check'
             }
         }
 		
