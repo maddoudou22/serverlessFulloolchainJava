@@ -102,21 +102,21 @@ Parameters:
     Default: "latest"
     
   S3rootBucket:
-    Description: "Bucket contenant les artefacts de l'application pour leur integration et leur deploiement (codes source et imagedefinitions des conteneurs requis)."
+    Description: "Bucket du projet contenant les artefacts de l'application pour leur integration et leur deploiement (codes source et imagedefinitions des conteneurs requis)."
     Type: String
     Default: "serverlessfulltoolchainjava"
     AllowedPattern: '[a-zA-Z0-9]+'
 
   S3SonarTestResults:
-    Description: "Bucket contenant le resultat des tests Sonar"
+    Description: "Repertoire contenant le resultat des tests Sonar (dans le bucket du projet)"
     Type: String
-    Default: "serverlessfulltoolchainjava/SonarTestResults"
+    Default: "SonarTestResults"
     AllowedPattern: '[a-zA-Z0-9-/]+'
     
   S3OWASPTestResults:
-    Description: "Bucket contenant le resultat des tests OWASP"
+    Description: "Repertoire contenant le resultat des tests OWASP (dans le bucket du projet)"
     Type: String
-    Default: "serverlessfulltoolchainjava/OWASPTestResults"
+    Default: "OWASPTestResults"
     AllowedPattern: '[a-zA-Z0-9-/]+'
     
   CodeBuildCacheLocation:
@@ -531,9 +531,9 @@ Resources:
           - Name: S3_PROJECT_LOCATION
             Value: !Ref S3rootBucket
           - Name: S3_SONARTESTRESULTS_LOCATION
-            Value: ! Ref S3SonarTestResults
+            Value: !Ref S3SonarTestResults
           - Name: S3_OWASPTESTRESULTS_LOCATION
-            Value: ! Ref S3OWASPTestResults
+            Value: !Ref S3OWASPTestResults
             
       VpcConfig:
         SecurityGroupIds: 
