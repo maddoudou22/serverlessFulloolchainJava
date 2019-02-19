@@ -55,21 +55,20 @@ phases:
       - echo "Verification que Sonar a bien compile les tests ..."
       # Installation neuve de Sonar, donc une seule task executee
       - timeout 30 sh -c 'until curl -u admin:admin http://localhost:9000/api/ce/activity | grep "SUCCESS"; do sleep 1; done'
-
+      
       - echo "Recuperation du resultat des tests via l'API de Sonar ..."
       - curl "http://127.0.0.1:9000/api/issues/search?facets=severities&componentKeys=$APPLICATION_GROUPID:$APPLICATION_NAME&pageSize=9" > ${APPLICATION_NAME}-TestsResult-temp.json
-
-      - echo "Recuperation du nombre de lignes de code et de la couverture des tests ..."
-      - curl "http://127.0.0.1:9000/api/measures/component?componentKey=$APPLICATION_GROUPID:$APPLICATION_NAME&metricKeys=ncloc,line_coverage,new_line_coverage" > ${APPLICATION_NAME}-TestCoverage.json
-      
-      - echo "Recuperation de la commande JQ pour le parsing de fichier JSON ..."
-      - wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-      - chmod +x jq-linux64
-      
-      - echo "Extraction du nombre de lignes de code et test de couverture en variables d\'environnement ..."
+     
+      - echo "Recuperation de la date afin d'en faire un timestamp pour les resultats ..."
       - TIMESTAMP=$(date +\"%Y%m%d%H%M%S\" | sed -e 's/\"//g')
       - mv ${APPLICATION_NAME}-TestsResult-temp.json ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json
       - sed -i "0,/{/ s/{/{\"timestamp\":${TIMESTAMP},/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json
+           
+      - echo "Recuperation du nombre de lignes de code et de la couverture des tests pour les ajouter au fichier de resultat des tests de Sonar ..."
+      - curl "http://127.0.0.1:9000/api/measures/component?componentKey=$APPLICATION_GROUPID:$APPLICATION_NAME&metricKeys=ncloc,line_coverage,new_line_coverage" > ${APPLICATION_NAME}-TestCoverage.json
+      - echo "Recuperation de la commande JQ pour le parsing de fichier JSON ..."
+      - wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+      - chmod +x jq-linux64
       - LINES_OF_CODE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
       - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json
       - CODE_COVERAGE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
