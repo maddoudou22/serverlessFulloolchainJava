@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: serverless Toolchain pour une application Java - DAN
+Description: serverless Toolchain fully serverless with live installation of Sonar and export of the test results into Athena and QuickSight - Code Build artefacts only - DAN
 
 
 Parameters:
@@ -9,7 +9,7 @@ Parameters:
   ProjectName:
     Description: Nom du projet utilise pour tagger les ressources creees
     Type: String
-    Default: "serverlessToolchainJava"
+    Default: "serverlessFullToolchainJava"
     
   ECRRepositoryURL:
     Description: URL du repository cree dans ECR hebergeant les images Docker generee durant l'etape de Post-Build de CodeBuild
@@ -19,7 +19,7 @@ Parameters:
   ApplicationImageRepository:
     Description: Nom de l'image Docker generee durant l'etape de Post-Build de CodeBuild
     Type: String
-    Default: "serverlesstoolchainjava"
+    Default: "serverlessfulltoolchainjava"
     
   DockerCodebuildImage:
     Description: Image Docker (et version) utilisee par CodeBuild pour builder l'application
@@ -34,19 +34,9 @@ Parameters:
   bucketS3:
     Description: "Bucket contenant les artefacts de l'application pour leur integration et leur deploiement (codes source et imagedefinitions des conteneurs requis)."
     Type: 'String'
-    Default: "serverlesstoolchainjava"
+    Default: "serverlessfulltoolchainjava"
     AllowedPattern: '[a-z0-9]+'
-    
-  EFSDIR:
-  Description: "Repertoire de Sonar a monter sur l'image executee par CodeBuild."
-    Type: 'String'
-    Default: "/opt/sonar"
-    
-  EFSDNS: 
-  Description: "EndPoint EFS requis pour monter le filesystem."
-    Type: 'String'
-    Default: ""
-      
+
   CodeBuildCacheLocation:
     Description: "Bucket contenant le cache des dependances et plugins de Maven pour le build"
     Type: 'String'
@@ -65,7 +55,7 @@ Parameters:
   GitHubRepository:
     Description: Nom du projet declare dans GitHub.
     Type: String
-    Default: "serverlessToolchainJava"
+    Default: "serverlessFullToolchainJava"
     
   GitHubBranch:
     Description: Branch utilisee dans GitHub.
@@ -82,16 +72,19 @@ Parameters:
   VPCID:
     Description: ID du VPC a creer
     Type: String
+# A modifier avec un VPC existant
     Default: 'vpc-06d6b5d796206a334'
     
   PrivateSubnetID:
-    Description: ID du subnet Prive dans lequel Codebuild instancie son image Docker pour le build et subnet d'acces au moint de montage EFS.
+    Description: ID du subnet Prive dans lequel Codebuild instancie son image Docker pour le build.
     Type: String
+# A modifier avec un subnet prive existant
     Default: 'subnet-0ec04d560325cc884'
     
   PrivateSGID:
     Description: ID du Security Group associe a CodeBuild pour la recuperation des sources Git en HTTPS.
     Type: String
+# A modifier avec un SG existant
     Default: 'sg-0284df363191d517c'
 
     
@@ -109,7 +102,6 @@ Metadata:
       - ApplicationImageRepository
       - DockerCodebuildImage
       - GitHubOAuthToken
-      - EFSDNS
       
     ParameterLabels:
       ECRRepositoryURL:
@@ -120,9 +112,7 @@ Metadata:
         default: "Image Docker (et version) utilisee par CodeBuild pour builder l'application"
       GitHubOAuthToken:
         default: "Token GitHub utilise par CodeBuild pour la recuperation des sources"
-      EFSDNS:
-         default: "Endpoint (nom DNS) du filesystem EFS hebergeant les repertoire de Sonar)"
-    
+
 #--------------------------------------------------------------------------------
 # RESSOURCES
 #--------------------------------------------------------------------------------
@@ -268,10 +258,6 @@ Resources:
             Value: !Ref "AWS::AccountId"
           - Name: DOCKER_CACHE_IMAGE_VERSION
             Value: !Ref DockerCacheImageVersion
-          - Name: EFS_DIR
-            Value: !Ref EFSDIR
-          - Name: EFS_DNS
-            Value: !Ref EFSDNS
       VpcConfig:
         SecurityGroupIds: 
           - !Sub ${PrivateSGID}

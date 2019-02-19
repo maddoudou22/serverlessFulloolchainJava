@@ -43,7 +43,7 @@ phases:
       - echo "Attente du demarrage de Sonar ..."
       - timeout 60 sh -c 'until ps aux | grep [o]rg.sonar.ce.app.CeServer; do sleep 1; done'
       - echo "Demarrage des tests Sonar ..."
-      - mvn sonar:sonar #-Duser.home=/opt/sonar/sonarqube-7.3/cache/
+      - mvn sonar:sonar
       - cp target/$APPLICATION_NAME-$PACKAGE_VERSION.jar .
       
   post_build:
@@ -76,11 +76,15 @@ phases:
       - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json
       - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP.html\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json
 
+      - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
+      - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket {S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
+      - if ! $(aws s3 ls s3://${S3_OWASPTESTRESULTS_LOCATION});then aws s3api put-object --bucket {S3_PROJECT_LOCATION} --key ${S3_OWASPTESTRESULTS_LOCATION}/ ;fi
+      
       - echo "Export du JSON de resultats Sonar et Unit Tests dans le bucket S3 ..."
-      - aws s3 cp ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json $S3_TESTRESULTS_LOCATION
+      - aws s3 cp ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json $S3_SONARTESTRESULTS_LOCATION
       - echo "Export des tests de dépendance dans le bucket S3 ..."
       - mv target/dependency-check-report.html target/dependency-check-report-${TIMESTAMP}.html
-      - aws s3 cp target/dependency-check-report-${TIMESTAMP}.html $S3_TESTRESULTS_LOCATION
+      - aws s3 cp target/dependency-check-report-${TIMESTAMP}.html $S3_OWASPTESTRESULTS_LOCATION
       
       - echo "PHASE DE BUILD DE L'IMAGE DOCKER"
       - echo "Verification de la presence de l'image Docker dans la registry locale (elle a du avoir le temps de se reconstruire ou se telecharger)"

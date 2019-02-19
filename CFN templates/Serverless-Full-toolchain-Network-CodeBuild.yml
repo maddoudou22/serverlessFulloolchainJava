@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: serverless Toolchain - DAN
+Description: serverless Toolchain fully serverless with live installation of Sonar and export of the test results into Athena and QuickSight - Network and CodeBuild components - DAN
 
 
 Parameters:
@@ -8,7 +8,7 @@ Parameters:
   VPCName:
     Description: Nom du VPC a creer
     Type: String
-    Default: 'serverlessToolchain_VPC_CFN'
+    Default: 'serverlessFullToolchain_VPC_CFN'
     
   VPCCidrBlock:
     Type: String
@@ -28,7 +28,7 @@ Parameters:
   PublicSubnetName:
     Description: Nom du subnet Public sur lequel la NAT Gateway est attachee.
     Type: String
-    Default: 'serverlessToolchain_PublicSubnet_CFN'
+    Default: 'serverlessFullToolchain_PublicSubnet_CFN'
         
   PublicSubnetCIDR:
     Type: String
@@ -40,9 +40,9 @@ Parameters:
     ConstraintDescription: Doit etre un block CIDR valide en /24
     
   PrivateSubnetName:
-    Description: Nom du subnet Prive dans lequel Codebuild instancie son image Docker pour le build et subnet d'acces au moint de montage EFS.
+    Description: Nom du subnet Prive dans lequel Codebuild instancie son image Docker pour le build.
     Type: String
-    Default: 'serverlessToolchain_PrivateSubnet_CFN'
+    Default: 'serverlessFullToolchain_PrivateSubnet_CFN'
     
   PrivateSubnetCIDR:
     Type: String
@@ -56,27 +56,27 @@ Parameters:
   PublicRouteTableName:
     Description: Nom de la table de routage associee au subnet public 'CodebuildPublicSubnet'.
     Type: String
-    Default: 'serverlessToolchain_PublicRouteTable_CFN'
+    Default: 'serverlessFullToolchain_PublicRouteTable_CFN'
     
   PrivateRouteTableName:
     Description: Nom de la table de routage associee au subnet prive 'CodebuildPrivateSubnet'.
     Type: String
-    Default: 'serverlessToolchain_PrivateRouteTable_CFN'
+    Default: 'serverlessFullToolchain_PrivateRouteTable_CFN'
     
   InternetGatewayName:
     Description: Nom de l'Internet Gateway associee au VPC.
     Type: String
-    Default: 'serverlessToolchain_IGW_CFN'
+    Default: 'serverlessFullToolchain_IGW_CFN'
 
   NATGatewayName:
     Description: Nom de la NAT Gateway associee au VPC.
     Type: String
-    Default: 'serverlessToolchain_NAT_CFN'
+    Default: 'serverlessFullToolchain_NAT_CFN'
     
   PrivateSGName:
     Description: Nom du Security Group associe a CodeBuild pour la recuperation des sources Git en HTTPS.
     Type: String
-    Default: 'serverlessToolchain_CodeBuild-SG_CFN'
+    Default: 'serverlessFullToolchain_CodeBuild-SG_CFN'
 
     
 # CodeBuild parameters -------------------------------------------------
@@ -84,47 +84,44 @@ Parameters:
   ProjectName:
     Description: Nom du projet utilise pour tagger les ressources creees
     Type: String
-    Default: "serverlessToolchainJava"
+    Default: "serverlessFullToolchainJava"
     
-  ECRRepositoryURL:
-    Description: URL du repository cree dans ECR hebergeant les images Docker generee durant l'etape de Post-Build de CodeBuild
-    Type: String
-    Default: "962109799108.dkr.ecr.eu-west-1.amazonaws.com/"
+#  ECRRepositoryURL:
+#    Description: URL du repository cree dans ECR hebergeant les images Docker generee durant l'etape de Post-Build de CodeBuild
+#    Type: String
+#    Default: "962109799108.dkr.ecr.eu-west-1.amazonaws.com/"
     
   ApplicationImageRepository:
     Description: Nom de l'image Docker generee durant l'etape de Post-Build de CodeBuild
     Type: String
-    Default: "serverlesstoolchainjava"
-    
-  DockerCodebuildImage:
-    Description: Image Docker (et version) utilisee par CodeBuild pour builder l'application
-    Type: String
-    Default: "codebuild-custom-java:0.3"
+    Default: "serverlessfulltoolchainjava"
     
   DockerCacheImageVersion:
     Description: Version de l'image Docker utilisee comme base initiale pour la construction de l'image Docker de l'application.
     Type: String
     Default: "latest"
     
-  bucketS3:
+  S3rootBucket:
     Description: "Bucket contenant les artefacts de l'application pour leur integration et leur deploiement (codes source et imagedefinitions des conteneurs requis)."
-    Type: 'String'
-    Default: "serverlesstoolchainjava"
-    AllowedPattern: '[a-z0-9]+'
+    Type: String
+    Default: "serverlessfulltoolchainjava"
+    AllowedPattern: '[a-zA-Z0-9]+'
+
+  S3SonarTestResults:
+    Description: "Bucket contenant le resultat des tests Sonar"
+    Type: String
+    Default: "serverlessfulltoolchainjava/SonarTestResults"
+    AllowedPattern: '[a-zA-Z0-9-/]+'
     
-  EFSDIR:
-    Description: "Repertoire de Sonar a monter sur l'image executee par CodeBuild."
-    Type: 'String'
-    Default: "/opt/sonar"
+  S3OWASPTestResults:
+    Description: "Bucket contenant le resultat des tests OWASP"
+    Type: String
+    Default: "serverlessfulltoolchainjava/OWASPTestResults"
+    AllowedPattern: '[a-zA-Z0-9-/]+'
     
-  EFSDNS: 
-    Description: "EndPoint EFS requis pour monter le filesystem."
-    Type: 'String'
-    Default: ""
-      
   CodeBuildCacheLocation:
     Description: "Bucket contenant le cache des dependances et plugins de Maven pour le build"
-    Type: 'String'
+    Type: String
     Default: "/cache/archives"
 
   EncryptionKeyARN:
@@ -140,7 +137,7 @@ Parameters:
   GitHubRepository:
     Description: Nom du projet declare dans GitHub.
     Type: String
-    Default: "serverlessToolchainJava"
+    Default: "serverlessFulloolchainJava"
     
   GitHubBranch:
     Description: Branch utilisee dans GitHub.
@@ -170,23 +167,14 @@ Metadata:
     - Label:
         default: Configuration de Codebuild
       Parameters:
-      - ECRRepositoryURL
       - ApplicationImageRepository
-      - DockerCodebuildImage
       - GitHubOAuthToken
-      - EFSDNS
       
     ParameterLabels:
-      ECRRepositoryURL:
-        default: "URL du repository cree dans ECR hebergeant les images Docker generee durant l'etape de Post-Build de CodeBuild"
       ApplicationImageRepository:
         default: "Nom de l'image Docker generee durant l'etape de Post-Build de CodeBuild"
-      DockerCodebuildImage:
-        default: "Image Docker (et version) utilisee par CodeBuild pour builder l'application"
       GitHubOAuthToken:
         default: "Token GitHub utilise par CodeBuild pour la recuperation des sources"
-      EFSDNS:
-         default: "Endpoint (nom DNS) du filesystem EFS hebergeant les repertoire de Sonar)"
       VPCCidrBlock:
         default: Plage IP du VPC
       PublicSubnetCIDR:
@@ -194,7 +182,7 @@ Metadata:
       PrivateSubnetCIDR:
         default: Plage IP du subnet prive
       AvailabilityZone:
-        default: "Zone de dispo dans laquelle les subnets seront crees. ATTENTION: devra etre declaree dans EFS !"
+        default: "Zone de dispo dans laquelle les subnets seront crees"
     
 #--------------------------------------------------------------------------------
 # RESSOURCES
@@ -409,7 +397,7 @@ Resources:
   ArtefactsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref bucketS3
+      BucketName: !Ref S3rootBucket
       AccessControl: Private
 
       
@@ -419,7 +407,7 @@ Resources:
     #Si la Policy est créée avant le bucket la création de la stack échoue :
     DependsOn: ArtefactsBucket
     Properties:
-      Bucket: !Ref bucketS3
+      Bucket: !Ref S3rootBucket
       PolicyDocument:
         Statement:
           -
@@ -427,8 +415,8 @@ Resources:
               - s3:*
             Effect: Allow
             Resource:
-              - !Sub arn:aws:s3:::${bucketS3}
-              - !Sub arn:aws:s3:::${bucketS3}/*
+              - !Sub arn:aws:s3:::${S3rootBucket}
+              - !Sub arn:aws:s3:::${S3rootBucket}/*
             Principal:
               Service:
                 - codepipeline.amazonaws.com
@@ -465,8 +453,8 @@ Resources:
                   - s3:GetObjectVersion
                   - s3:ListBucket
                 Resource:
-                 - !Join ['',['arn:aws:s3:::',!Ref bucketS3, '/*']]
-                 - !Join ['',['arn:aws:s3:::',!Ref bucketS3]]
+                 - !Join ['',['arn:aws:s3:::',!Ref S3rootBucket, '/*']]
+                 - !Join ['',['arn:aws:s3:::',!Ref S3rootBucket]]
               -
                 Effect: Allow
                 Action:
@@ -529,21 +517,24 @@ Resources:
       Environment:
         Type: linuxContainer
         ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: !Sub '${ECRRepositoryURL}${DockerCodebuildImage}'
+        Image: "aws/codebuild/java:openjdk-8"
         PrivilegedMode: true # Obligatoire pour l'utilisation des commandes Docker
         EnvironmentVariables:
           - Name: IMAGE_REPO_NAME
             Value: !Ref ApplicationImageRepository
-          - Name: S3_KEY
-            Value: !Ref EncryptionKeyARN
           - Name: AWS_ACCOUNT_ID
             Value: !Ref "AWS::AccountId"
           - Name: DOCKER_CACHE_IMAGE_VERSION
             Value: !Ref DockerCacheImageVersion
-          - Name: EFS_DIR
-            Value: !Ref EFSDIR
-          - Name: EFS_DNS
-            Value: !Ref EFSDNS
+          - Name: S3_KEY
+            Value: !Ref EncryptionKeyARN
+          - Name: S3_PROJECT_LOCATION
+            Value: !Ref S3rootBucket
+          - Name: S3_SONARTESTRESULTS_LOCATION
+            Value: ! Ref S3SonarTestResults
+          - Name: S3_OWASPTESTRESULTS_LOCATION
+            Value: ! Ref S3OWASPTestResults
+            
       VpcConfig:
         SecurityGroupIds: 
           - !Ref CodeBuildSecurityGroup
@@ -552,7 +543,7 @@ Resources:
         VpcId: !Ref VPC
       Cache:
         Type: S3
-        Location: !Sub '${bucketS3}${CodeBuildCacheLocation}'
+        Location: !Sub '${S3rootBucket}${CodeBuildCacheLocation}'
       TimeoutInMinutes: 10
       Tags:
         - Key: Name
@@ -621,8 +612,8 @@ Resources:
                   - s3:GetObjectVersion
                   - s3:ListBucket
                 Resource:
-                 - !Join ['',['arn:aws:s3:::',!Ref bucketS3, '/*']]
-                 - !Join ['',['arn:aws:s3:::',!Ref bucketS3]]
+                 - !Join ['',['arn:aws:s3:::',!Ref S3rootBucket, '/*']]
+                 - !Join ['',['arn:aws:s3:::',!Ref S3rootBucket]]
                   
   # Pipeline
   Pipeline:
@@ -669,7 +660,7 @@ Resources:
               
       ArtifactStore:
         Type: S3
-        Location: !Ref bucketS3
+        Location: !Ref S3rootBucket
         EncryptionKey:
           Id: !Ref EncryptionKeyARN
           Type: KMS

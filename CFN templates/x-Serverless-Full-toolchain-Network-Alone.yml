@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: serverless Toolchain - DAN
+Description: serverless Toolchain fully serverless with live installation of Sonar and export of the test results into Athena and QuickSight - Network components only - DAN
 
 
 Parameters:
@@ -8,7 +8,7 @@ Parameters:
   VPCName:
     Description: Nom du VPC a creer
     Type: String
-    Default: 'serverlessToolchain_VPC_CFN'
+    Default: 'serverlessFullToolchain_VPC_CFN'
     
   VPCCidrBlock:
     Type: String
@@ -28,7 +28,7 @@ Parameters:
   PublicSubnetName:
     Description: Nom du subnet Public sur lequel la NAT Gateway est attachee.
     Type: String
-    Default: 'serverlessToolchain_PublicSubnet_CFN'
+    Default: 'serverlessFullToolchain_PublicSubnet_CFN'
         
   PublicSubnetCIDR:
     Type: String
@@ -40,9 +40,9 @@ Parameters:
     ConstraintDescription: Doit etre un block CIDR valide en /24
     
   PrivateSubnetName:
-    Description: Nom du subnet Prive dans lequel Codebuild instancie son image Docker pour le build et subnet d'acces au moint de montage EFS.
+    Description: Nom du subnet Prive dans lequel Codebuild instancie son image Docker pour le build.
     Type: String
-    Default: 'serverlessToolchain_PrivateSubnet_CFN'
+    Default: 'serverlessFullToolchain_PrivateSubnet_CFN'
     
   PrivateSubnetCIDR:
     Type: String
@@ -56,27 +56,27 @@ Parameters:
   PublicRouteTableName:
     Description: Nom de la table de routage associee au subnet public 'CodebuildPublicSubnet'.
     Type: String
-    Default: 'serverlessToolchain_PublicRouteTable_CFN'
+    Default: 'serverlessFullToolchain_PublicRouteTable_CFN'
     
   PrivateRouteTableName:
     Description: Nom de la table de routage associee au subnet prive 'CodebuildPrivateSubnet'.
     Type: String
-    Default: 'serverlessToolchain_PrivateRouteTable_CFN'
+    Default: 'serverlessFullToolchain_PrivateRouteTable_CFN'
     
   InternetGatewayName:
     Description: Nom de l'Internet Gateway associee au VPC.
     Type: String
-    Default: 'serverlessToolchain_IGW_CFN'
+    Default: 'serverlessFullToolchain_IGW_CFN'
 
   NATGatewayName:
     Description: Nom de la NAT Gateway associee au VPC.
     Type: String
-    Default: 'serverlessToolchain_NAT_CFN'
+    Default: 'serverlessFullToolchain_NAT_CFN'
     
   PrivateSGName:
     Description: Nom du Security Group associe a CodeBuild pour la recuperation des sources Git en HTTPS.
     Type: String
-    Default: 'serverlessToolchain_CodeBuild-SG_CFN'
+    Default: 'serverlessFullToolchain_CodeBuild-SG_CFN'
 
     
 #--------------------------------------------------------------------------------
