@@ -14,8 +14,4 @@ echo "Git Commit ..."
 git commit -m "latest push from windows"
 
 echo "Git Push ..."
-
-
-git push --set-upstream https://github.com/maddoudou22/serverlessFulloolchainJava.git master
-
-pause
+git push %URL_Projet_Git%
