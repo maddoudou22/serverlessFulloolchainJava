@@ -81,10 +81,10 @@ phases:
       - if ! $(aws s3 ls s3://${S3_OWASPTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_OWASPTESTRESULTS_LOCATION}/ ;fi
       
       - echo "Export du JSON de resultats Sonar et Unit Tests dans le bucket S3 ..."
-      - aws s3 cp ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json $S3_SONARTESTRESULTS_LOCATION
+      - aws s3 cp ${APPLICATION_NAME}-TestsResult-${TIMESTAMP}.json s3://${S3_PROJECT_LOCATION}/${S3_SONARTESTRESULTS_LOCATION}
       - echo "Export des tests de dépendance dans le bucket S3 ..."
-      - mv target/dependency-check-report.html target/dependency-check-report-${TIMESTAMP}.html
-      - aws s3 cp target/dependency-check-report-${TIMESTAMP}.html $S3_OWASPTESTRESULTS_LOCATION
+      - mv target/dependency-check-report.html target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP}.html
+      - aws s3 cp target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP}.html s3://${S3_PROJECT_LOCATION}/${S3_OWASPTESTRESULTS_LOCATION}
       
       - echo "PHASE DE BUILD DE L'IMAGE DOCKER"
       - echo "Verification de la presence de l'image Docker dans la registry locale (elle a du avoir le temps de se reconstruire ou se telecharger)"
