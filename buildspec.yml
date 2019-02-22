@@ -64,8 +64,8 @@ phases:
       - echo "Recuperation du resultat des tests de vulnérabilités de Sonar via l'API de Sonar ..."
       - curl "http://127.0.0.1:9000/api/issues/search?facets=severities&componentKeys=$APPLICATION_GROUPID:$APPLICATION_NAME&pageSize=500" > ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
       - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer le timestamp pour le classement chronologique des résultats dans Athena, ainsi que la date et l'heure ..."
-      - sed -i "0,/{/ s/{/{\"buildtime\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
-      - sed -i "0,/{/ s/{/{\"buildday\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
+#      - sed -i "0,/{/ s/{/{\"buildtime\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
+#      - sed -i "0,/{/ s/{/{\"buildday\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
       - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
             
       - echo "Recuperation des tests unitaires via l'API Sonar ..."
