@@ -249,7 +249,7 @@ Resources:
             Value: !Ref S3OWASPTestResults
       Cache:
         Type: S3
-        Location: !Sub '${bucketS3}${CodeBuildCacheLocation}'
+        Location: !Sub '${S3rootBucket}${CodeBuildCacheLocation}'
       TimeoutInMinutes: 10
       Tags:
         - Key: Name
