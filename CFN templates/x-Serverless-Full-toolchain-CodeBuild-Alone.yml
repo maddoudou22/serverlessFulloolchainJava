@@ -21,11 +21,6 @@ Parameters:
     Type: String
     Default: "serverlessfulltoolchainjava"
     
-  DockerCodebuildImage:
-    Description: Image Docker (et version) utilisee par CodeBuild pour builder l'application
-    Type: String
-    Default: "codebuild-custom-java:0.3"
-    
   DockerCacheImageVersion:
     Description: Version de l'image Docker utilisee comme base initiale pour la construction de l'image Docker de l'application.
     Type: String
