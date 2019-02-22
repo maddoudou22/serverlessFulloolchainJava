@@ -80,6 +80,12 @@ phases:
       - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-temp.json
       - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP_FILES.html\",/" ${APPLICATION_NAME}-TestsResult-temp.json
 
+      
+      
+      - cat ${APPLICATION_NAME}-TestCoverage.json
+
+      
+      
       - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
       - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
       - if ! $(aws s3 ls s3://${S3_OWASPTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_OWASPTESTRESULTS_LOCATION}/ ;fi
