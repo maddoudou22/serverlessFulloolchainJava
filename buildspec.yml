@@ -74,9 +74,9 @@ phases:
       - sed -i "0,/{/ s/{/{\"time\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
       - sed -i "0,/{/ s/{/{\"day\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
       - sed -i "0,/{/ s/{/{\"timestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - LINES_OF_CODE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
+      - LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
       - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - CODE_COVERAGE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
+      - CODE_COVERAGE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
       - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-temp.json
       - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP_FILES.html\",/" ${APPLICATION_NAME}-TestsResult-temp.json
 
