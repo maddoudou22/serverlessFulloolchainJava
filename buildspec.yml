@@ -60,39 +60,43 @@ phases:
       - curl "http://127.0.0.1:9000/api/issues/search?facets=severities&componentKeys=$APPLICATION_GROUPID:$APPLICATION_NAME&pageSize=500" > ${APPLICATION_NAME}-TestsResult-temp.json
      
       - echo "Recuperation du nombre de lignes de code et de la couverture des tests via l'API Sonar ..."
-      - curl "http://127.0.0.1:9000/api/measures/component?componentKey=$APPLICATION_GROUPID:$APPLICATION_NAME&metricKeys=ncloc,line_coverage,new_line_coverage" > ${APPLICATION_NAME}-TestCoverage.json
+      - curl "http://127.0.0.1:9000/api/measures/component?componentKey=$APPLICATION_GROUPID:$APPLICATION_NAME&metricKeys=ncloc,line_coverage,new_line_coverage" > ${APPLICATION_NAME}-TestCoverage-temp.json
 
-      - echo "Recuperation de la commande JQ pour le parsing de fichier JSON ..."
-      - wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-      - chmod +x jq-linux64
+#      - echo "Recuperation de la commande JQ pour le parsing de fichier JSON ..."
+#      - wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+#      - chmod +x jq-linux64
       
       - echo "Recuperation de la date afin d'en faire un timestamp pour les resultats ..."
       - TIMESTAMP_FILES=$(date +\"%Y%m%d%H%M%S\" | sed -e 's/\"//g')
       - TIMESTAMP_DAY=$(date +"%A %d %B %Y")
       - TIMESTAMP_TIME=$(date +"%T")
-      - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer la le résultat des tests, la date et l'heure et le nombre de lignes de code ..."
-      - sed -i "0,/{/ s/{/{\"buildtime\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - sed -i "0,/{/ s/{/{\"buildday\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
-      - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - CODE_COVERAGE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
-      - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-temp.json
-      - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP_FILES.html\",/" ${APPLICATION_NAME}-TestsResult-temp.json
+#      - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer la le résultat des tests, la date et l'heure et le nombre de lignes de code ..."
+#      - sed -i "0,/{/ s/{/{\"buildtime\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
+#      - sed -i "0,/{/ s/{/{\"buildday\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-temp.json
+#      - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestsResult-temp.json
+      
+#      echo "Sonar ne renvoie pas les données dans les tableaux toujours au même endroit : nécéssité de vérifier 
+#      - if $(./jq-linux64 ".component.measures[1].metric") == "ncloc"; then LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g'); else LINES_OF_CODE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g');fi
+#      - LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
 
-      
-      
-      - cat ${APPLICATION_NAME}-TestCoverage.json
+#      - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-temp.json
+#      - CODE_COVERAGE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
+#      - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-temp.json
+#      - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP_FILES.html\",/" ${APPLICATION_NAME}-TestsResult-temp.json
 
-      
-      
       - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
       - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
+      - if ! $(aws s3 ls s3://${S3_UNITTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_UNITTESTRESULTS_LOCATION}/ ;fi
       - if ! $(aws s3 ls s3://${S3_OWASPTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_OWASPTESTRESULTS_LOCATION}/ ;fi
       
-      - echo "Export du JSON de resultats Sonar et Unit Tests dans le bucket S3 ..."
+      - echo "Export des JSON de resultats Sonar ..."
       - mv ${APPLICATION_NAME}-TestsResult-temp.json ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
       - aws s3 cp ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_SONARTESTRESULTS_LOCATION}/
+      
+      - echo "Export des JSON de resultats de tests unitaires dans le bucket S3 ..."
+      - mv ${APPLICATION_NAME}-TestCoverage-temp.json ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json
+      - aws s3 cp ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_UNITTESTRESULTS_LOCATION}/
+      
       - echo "Export des tests de dépendance dans le bucket S3 ..."
       - mv target/dependency-check-report.html target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.html
       - aws s3 cp target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.html s3://${S3_PROJECT_LOCATION}/${S3_OWASPTESTRESULTS_LOCATION}/
@@ -104,13 +108,8 @@ phases:
       - sed -i.bak "s/BASIS_IMAGE/$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com\/$IMAGE_REPO_NAME:$DOCKER_CACHE_IMAGE_VERSION/g" dockerfile
       - echo "Build de l'image Docker de l'application a partir de l'image de base pour accelerer le processus - Les 3/4 des donnees sont deja en cache"
       - docker build --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$DOCKER_CACHE_IMAGE_VERSION --build-arg PACKAGE_VERSION=$PACKAGE_VERSION --build-arg APPLICATION_NAME=$APPLICATION_NAME -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PACKAGE_VERSION .
-      - echo "Tag de cette nouvelle version en 'latest'. C'est elle qui sera utilisee en cache pour le future de la future release de l'application"
-      - docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PACKAGE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
       - echo "Pushing the Docker image..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PACKAGE_VERSION
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-      - echo "Writing image definitions file... (utilise uniquement pour le deploiement dans FarGate".
-      - printf '[{"name":"%s","imageUri":"%s"}]' $IMAGE_REPO_NAME $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PACKAGE_VERSION > imagedefinitions.json
       
 cache:
   paths:

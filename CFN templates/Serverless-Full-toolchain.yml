@@ -38,6 +38,12 @@ Parameters:
     Default: "SonarTestResults"
     AllowedPattern: '[a-zA-Z0-9-/]+'
     
+  S3UnitTestResults:
+    Description: "Repertoire contenant le resultat des tests unitaires (dans le bucket du projet)"
+    Type: String
+    Default: "UnitTestResults"
+    AllowedPattern: '[a-zA-Z0-9-/]+'
+    
   S3OWASPTestResults:
     Description: "Repertoire contenant le resultat des tests OWASP (dans le bucket du projet)"
     Type: String
@@ -245,6 +251,8 @@ Resources:
             Value: !Ref S3rootBucket
           - Name: S3_SONARTESTRESULTS_LOCATION
             Value: !Ref S3SonarTestResults
+          - Name: S3_UNITTESTRESULTS_LOCATION
+            Value: !Ref S3UnitTestResults
           - Name: S3_OWASPTESTRESULTS_LOCATION
             Value: !Ref S3OWASPTestResults
       Cache:
