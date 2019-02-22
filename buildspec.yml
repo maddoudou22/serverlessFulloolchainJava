@@ -64,8 +64,6 @@ phases:
       - echo "Recuperation du resultat des tests de vulnérabilités de Sonar via l'API de Sonar ..."
       - curl "http://127.0.0.1:9000/api/issues/search?facets=severities&componentKeys=$APPLICATION_GROUPID:$APPLICATION_NAME&pageSize=500" > ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
       - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer le timestamp pour le classement chronologique des résultats dans Athena, ainsi que la date et l'heure ..."
-#      - sed -i "0,/{/ s/{/{\"buildtime\":\"${TIMESTAMP_TIME}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
-#      - sed -i "0,/{/ s/{/{\"buildday\":\"${TIMESTAMP_DAY}\",/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
       - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
             
       - echo "Recuperation des tests unitaires via l'API Sonar ..."
@@ -73,21 +71,6 @@ phases:
       - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer le timestamp pour le classement chronologique des résultats dans Athena ..."
       - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json
       
-      
-#      - echo "Recuperation de la commande JQ pour le parsing de fichier JSON ..."
-#      - wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-#      - chmod +x jq-linux64
-      
-      
-#      echo "Sonar ne renvoie pas les données dans les tableaux toujours au même endroit : nécéssité de vérifier 
-#      - if $(./jq-linux64 ".component.measures[1].metric") == "ncloc"; then LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g'); else LINES_OF_CODE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g');fi
-#      - LINES_OF_CODE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
-
-#      - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-temp.json
-#      - CODE_COVERAGE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
-#      - sed -i "0,/{/ s/{/{\"coverage\":$CODE_COVERAGE,/" ${APPLICATION_NAME}-TestsResult-temp.json
-#      - sed -i "0,/{/ s/{/{\"depedencyCheckFile\":\"dependency-check-report-$TIMESTAMP_FILES.html\",/" ${APPLICATION_NAME}-TestsResult-temp.json
-
       - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
       - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
       - if ! $(aws s3 ls s3://${S3_UNITTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_UNITTESTRESULTS_LOCATION}/ ;fi
@@ -118,4 +101,4 @@ cache:
     - '/root/.m2/**/*'
     
 artifacts:
-    files: imagedefinitions.json
+    files: ${APPLICATION_NAME}-TestsResult-${TIMESTAMP_FILES}.json
