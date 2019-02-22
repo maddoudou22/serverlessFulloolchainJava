@@ -68,9 +68,11 @@ phases:
       
       - echo "Recuperation de la date afin d'en faire un timestamp pour les resultats ..."
       - TIMESTAMP_FILES=$(date +\"%Y%m%d-%H%M%S\" | sed -e 's/\"//g')
-      - TIMESTAMP_RESULT=$(date +\"%Y-%m-%d %H:%M:%S\" | sed -e 's/\"//g')
-      - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer la le résultat des tests, le timestamp et le nombre de lignes de code ..."
-      - sed -i "0,/{/ s/{/{\"timestamp\":${TIMESTAMP_RESULT},/" ${APPLICATION_NAME}-TestsResult-temp.json
+      - TIMESTAMP_DAY=$(date +\"date +"%A %d %B %Y")
+      - TIMESTAMP_TIME=$(date +\"date +"%T")
+      - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer la le résultat des tests, la date et l'heure et le nombre de lignes de code ..."
+      - sed -i "0,/{/ s/{/{\"time\":${TIMESTAMP_TIME},/" ${APPLICATION_NAME}-TestsResult-temp.json
+      - sed -i "0,/{/ s/{/{\"day\":${TIMESTAMP_DAY},/" ${APPLICATION_NAME}-TestsResult-temp.json
       - LINES_OF_CODE=$(./jq-linux64 ".component.measures[0].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
       - sed -i "0,/{/ s/{/{\"ncloc\":$LINES_OF_CODE,/" ${APPLICATION_NAME}-TestsResult-temp.json
       - CODE_COVERAGE=$(./jq-linux64 ".component.measures[1].value" ${APPLICATION_NAME}-TestCoverage.json | sed -e 's/\"//g')
