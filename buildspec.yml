@@ -67,7 +67,7 @@ phases:
       - chmod +x jq-linux64
       
       - echo "Recuperation de la date afin d'en faire un timestamp pour les resultats ..."
-      - TIMESTAMP_FILES=$(date +\"%Y%m%d-%H%M%S\" | sed -e 's/\"//g')
+      - TIMESTAMP_FILES=$(date +\"%Y%m%d%H%M%S\" | sed -e 's/\"//g')
       - TIMESTAMP_DAY=$(date +"%A %d %B %Y")
       - TIMESTAMP_TIME=$(date +"%T")
       - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer la le résultat des tests, la date et l'heure et le nombre de lignes de code ..."
