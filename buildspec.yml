@@ -73,6 +73,7 @@ phases:
       
       - echo "Recuperation des tests de dépendance OWASP dans le répertoire 'target' (et suppression des retours à la ligne car Athena ne supporte que les JSON 'one-line') ..."
       - tr -s "\n" ' ' < target/dependency-check-report.json > target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json
+      - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json
       
       - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
       - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
