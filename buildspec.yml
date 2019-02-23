@@ -83,8 +83,8 @@ phases:
       - aws s3 cp ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_UNITTESTRESULTS_LOCATION}/
       
       - echo "Export des tests de dépendance dans le bucket S3 ..."
-      - mv target/dependency-check-report.html target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.html
-      - aws s3 cp target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.html s3://${S3_PROJECT_LOCATION}/${S3_OWASPTESTRESULTS_LOCATION}/
+      - mv target/dependency-check-report.json target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json
+      - aws s3 cp target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_OWASPTESTRESULTS_LOCATION}/
       
       - echo "PHASE DE BUILD DE L'IMAGE DOCKER"
       - echo "Verification de la presence de l'image Docker dans la registry locale (elle a du avoir le temps de se reconstruire ou se telecharger)"
