@@ -71,6 +71,9 @@ phases:
       - echo "Modification du fichier de resultat des tests de Sonar pour y intégrer le timestamp pour le classement chronologique des résultats dans Athena ..."
       - sed -i "0,/{/ s/{/{\"buildtimestamp\":${TIMESTAMP_FILES},/" ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json
       
+      - echo "Recuperation des tests de dépendance OWASP dans le répertoire 'target' (et suppression des retours à la ligne car Athena ne supporte que les JSON 'one-line') ..."
+      - tr -s "\n" ' ' < target/dependency-check-report.json > target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json
+      
       - echo "Verification de l'existence des repertoires de test dans le bucket S3 du projet, sinon creation ..."
       - if ! $(aws s3 ls s3://${S3_SONARTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_SONARTESTRESULTS_LOCATION}/ ;fi
       - if ! $(aws s3 ls s3://${S3_UNITTESTRESULTS_LOCATION});then aws s3api put-object --bucket ${S3_PROJECT_LOCATION} --key ${S3_UNITTESTRESULTS_LOCATION}/ ;fi
@@ -83,7 +86,6 @@ phases:
       - aws s3 cp ${APPLICATION_NAME}-TestCoverage-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_UNITTESTRESULTS_LOCATION}/
       
       - echo "Export des tests de dépendance dans le bucket S3 ..."
-      - mv target/dependency-check-report.json target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json
       - aws s3 cp target/${APPLICATION_NAME}-dependency-check-report-${TIMESTAMP_FILES}.json s3://${S3_PROJECT_LOCATION}/${S3_OWASPTESTRESULTS_LOCATION}/
       
       - echo "PHASE DE BUILD DE L'IMAGE DOCKER"
